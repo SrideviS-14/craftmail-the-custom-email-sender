@@ -24,7 +24,6 @@ CraftMail is a powerful email automation and scheduling platform that streamline
 - **Preview Feature**: Review and refine email templates before sending.  
 - **Google OAuth2 Authentication**: Secure user login using Google OAuth2.  
 - **Email Scheduling**: Schedule emails for immediate or future delivery.  
-- **Throttling Support**: Ensure compliance with ESP rate limits.  
 
 ---
 
