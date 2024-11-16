@@ -128,22 +128,22 @@ CraftMail is a powerful email automation and scheduling platform that streamline
 
 ## Screenshots
 
-Login Page
+### Login Page
 ![image](https://github.com/user-attachments/assets/0c64965d-3007-461e-9208-d0256dbf5c54)
 
-Home Page
+### Home Page
 ![image](https://github.com/user-attachments/assets/05aff76f-0304-4f1f-848d-e62a47c36dc5)
 
-Dashboard 
+### Dashboard 
 ![image](https://github.com/user-attachments/assets/41d18898-d4bf-47b2-9b06-44de647046da)
 
-Profile Page
+### Profile Page
 ![image](https://github.com/user-attachments/assets/6540f4d7-6bca-49f6-b86a-264a54589ec3)
 
-About Page
+### About Page
 ![image](https://github.com/user-attachments/assets/005c193e-6a2d-4dd0-9e79-98530c980fcd)
 
-Contact Page
+### Contact Page
 ![image](https://github.com/user-attachments/assets/f20537ab-1b0e-478a-94bc-72dda9d25f18)
 
 ---
