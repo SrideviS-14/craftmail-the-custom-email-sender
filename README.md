@@ -78,7 +78,7 @@ CraftMail is a powerful email automation and scheduling platform that streamline
 ### API Key Configuration
 
 #### 1. **SendGrid API Key**
-- Visit the [SendGrid API Key Management]([https://app.sendgrid.com/settings/api_keys](https://app.sendgrid.com/settings/api_keys)).  
+- Visit the [SendGrid API Key Management](https://app.sendgrid.com/settings/api_keys).  
 - Log in or create an account.  
 - Click **Create API Key** and choose permissions (Full Access is recommended for development).  
 - Copy the generated key and add it to your `.env` file under `SENDGRID_API_KEY`.
