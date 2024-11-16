@@ -1,4 +1,4 @@
-# CraftMail: Email Automation and Scheduling Tool
+# CraftMail: Email Generation and Scheduling Tool
 
 CraftMail is a powerful email automation and scheduling platform that streamlines email management. It allows users to upload CSV files, customize email prompts, generate previews, schedule deliveries, and send emails effortlessly. CraftMail integrates seamlessly with popular Email Service Providers (ESP) like SendGrid, utilizes the Groq API for content generation, and offers secure user authentication through Google OAuth2.
 
