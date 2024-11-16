@@ -1,6 +1,7 @@
 // src/Login.js
 import React from 'react';
 import { Button, Container, Typography, Box } from '@mui/material';
+import GoogleIcon from '@mui/icons-material/Google';
 
 const Login = () => {
   
@@ -45,6 +46,9 @@ const Login = () => {
         </Typography>
         <Button
           sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             backgroundColor: 'primary.main',
             color: 'white',
             padding: '8px 32px',
@@ -57,6 +61,15 @@ const Login = () => {
           onClick={handleLogin}
           fullWidth
         >
+          <img
+            src="https://www.gstatic.com/images/branding/product/1x/gsa_64dp.png" // Reliable link
+            alt="Google Logo"
+            style={{
+              width: '20px',
+              height: '20px',
+              marginRight: '8px',
+            }}
+          />
           Login with Google
         </Button>
       </Box>

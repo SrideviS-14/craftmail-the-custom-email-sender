@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import {
-  Stepper, Step, StepLabel, Button, Typography, TextField, Box, Dialog,
-  DialogActions, DialogContent, DialogTitle
+  Stepper, Step, StepLabel, Button, TextField, Box
 } from '@mui/material';
-import EmailStatusDashboard from './EmailStatusDashboard';
-import { borderRadius, keyframes } from '@mui/system';
+import { keyframes } from '@mui/system';
 import '../styles/styles.css'; // Ensure this path is correct
 import { useNavigate } from 'react-router-dom';
-// Animation for step transitions
+import { Radio, RadioGroup, FormControlLabel, FormControl, FormLabel } from '@mui/material';
+
 const fadeIn = keyframes`
   0% { opacity: 0; transform: translateY(-20px); }
   100% { opacity: 1; transform: translateY(0); }
@@ -22,22 +21,19 @@ function DataUpload() {
     subject: '',
     body: '',
   });
-  const [isEmailSent, setIsEmailSent] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editedEmail, setEditedEmail] = useState({
-    subject: generatedEmail.subject,
-    body: generatedEmail.body,
-  });
-
+  const [cursorPosition, setCursorPosition] = useState({ subject: 0, body: 0 });
+  const navigate = useNavigate();
+  const [sendTime, setSendTime] = useState("");
+  const [sendOption, setSendOption] = useState('now');
   const steps = [
     'Upload CSV File',
     'Customize Email Prompt',
     'Generate Email Preview',
+    'Schedule',
     'Send Email',
-    'Email Status Dashboard',
   ];
-  const navigate = useNavigate();
+
   const handleFileChange = (e) => setFile(e.target.files[0]);
 
   const handleFileUpload = async (e) => {
@@ -56,8 +52,25 @@ function DataUpload() {
     }
   };
 
-  const addPlaceholder = (placeholder) => {
-    setCustomPrompt((prevPrompt) => `${prevPrompt} {${placeholder}}`);
+  // Track cursor position when the user interacts with the subject or body field
+  const handleCursorChange = (e) => {
+    const { name, selectionStart } = e.target;
+    setCursorPosition((prev) => ({ ...prev, [name]: selectionStart }));
+  };
+
+  const addPlaceholder = (placeholder, field) => {
+    setGeneratedEmail((prevEmail) => {
+      const cursorPos = cursorPosition[field];
+      const updatedField =
+        prevEmail[field].slice(0, cursorPos) +
+        `{${placeholder}}` +
+        prevEmail[field].slice(cursorPos);
+  
+      return {
+        ...prevEmail,
+        [field]: updatedField,
+      };
+    });
   };
 
   const generateEmailPreview = async () => {
@@ -66,12 +79,10 @@ function DataUpload() {
         prompt: customPrompt,
       });
       if (response.status === 200) {
-        const dict = {
-          subject: response.data.subject,
-          body: response.data.body,
-        };
-        setGeneratedEmail(dict);
-        setEditedEmail(dict);
+        setGeneratedEmail((prevEmail) => ({
+          subject: prevEmail.subject || response.data.subject,
+          body: prevEmail.body || response.data.body,
+        }));
         setActiveStep((prevStep) => prevStep + 1);
       }
     } catch (error) {
@@ -79,7 +90,11 @@ function DataUpload() {
     }
   };
 
-  const handleConfirmEmail = () => {
+  const handlePrevStep = () => {
+    setActiveStep((prevStep) => prevStep - 1);
+  };
+
+  const handleNestStep = () => {
     setActiveStep((prevStep) => prevStep + 1);
   };
 
@@ -87,10 +102,10 @@ function DataUpload() {
     try {
       const response = await axios.post('http://localhost:5000/api/send-email', {
         emailContent: generatedEmail,
+        sendTime,
       });
       if (response.status === 200) {
-        setIsEmailSent(true);
-        setActiveStep((prevStep) => prevStep + 1);
+        handleComplete()
         console.log('Email sent successfully!');
       }
     } catch (error) {
@@ -98,31 +113,18 @@ function DataUpload() {
     }
   };
 
-  const handleOpenEditDialog = () => {
-    setEditedEmail({
-      subject: generatedEmail.subject,
-      body: generatedEmail.body,
-    });
-    setIsEditDialogOpen(true);
-  };
+  const handleSendOptionChange = (event) => {
+    setSendOption(event.target.value);
 
-  const handleCloseEditDialog = () => {
-    setIsEditDialogOpen(false);
-  };
-
-  const handleSaveChanges = () => {
-    setGeneratedEmail({ ...editedEmail });
-    setIsEditDialogOpen(false);
-  };
-
-  const handlePrevStep = () => {
-    setActiveStep((prevStep) => prevStep - 1);
+    // If "Send Now" is selected, set the time to "0"
+    if (event.target.value === 'now') {
+      setSendTime('0');
+    }
   };
 
   const handleComplete = () => {
     console.log('Process complete!');
-    // Add your completion logic here (e.g., redirect, display a success message)
-    navigate('/profile')
+    navigate('/profile');
   };
 
   return (
@@ -137,9 +139,9 @@ function DataUpload() {
           marginTop: '20px',
           animation: `${fadeIn} 1s ease-out`,
           width: '800px',
-          minHeight: '400px',  // Minimum height to ensure it doesn't shrink too much
-          display: 'flex',       // This will allow the content to grow flexibly
-          flexDirection: 'column', // Stack the elements vertically
+          minHeight: '400px',
+          display: 'flex',
+          flexDirection: 'column',
         }}
         className="stepperContainer"
       >
@@ -148,21 +150,14 @@ function DataUpload() {
             backgroundColor: 'white',
             padding: '50px',
             borderRadius: '8px',
-            flexGrow: 1, // Ensures this div takes all available space
-            overflowY: 'auto', // Prevents overflow if content grows too much
+            flexGrow: 1,
+            overflowY: 'auto',
           }}
         >
           <Stepper activeStep={activeStep} alternativeLabel>
             {steps.map((label) => (
               <Step key={label}>
-                <StepLabel
-                  sx={{
-                    fontSize: '5rem',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  {label}
-                </StepLabel>
+                <StepLabel sx={{ fontSize: '1rem', fontWeight: 'bold' }}>{label}</StepLabel>
               </Step>
             ))}
           </Stepper>
@@ -182,16 +177,7 @@ function DataUpload() {
 
             {activeStep === 1 && columns.length > 0 && (
               <div>
-                <h3>Step 2: Customize Email Prompt</h3>
-                <div>
-                  <h4>Available Placeholders</h4>
-                  {columns.map((col) => (
-                    <Button key={col} onClick={() => addPlaceholder(col)} className="button">
-                      {col}
-                    </Button>
-                  ))}
-                  <br/><br/>
-                </div>
+                <h3>Step 2: Email Prompt</h3>
                 <TextField
                   label="Custom Prompt"
                   multiline
@@ -208,70 +194,111 @@ function DataUpload() {
               </div>
             )}
 
-            {activeStep === 2 && generatedEmail.subject && generatedEmail.body && (
-              <div>
-                <h3>Step 3: Preview Email</h3>
-                <h4>Subject</h4>
-                <p>{generatedEmail.subject}</p>
-                <h4>Body</h4>
-                <p>{generatedEmail.body}</p>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-                  <Button onClick={handlePrevStep} className="button">Previous</Button>
-                  <Button onClick={handleOpenEditDialog} className="button">Edit Email</Button>
-                  <Button onClick={handleConfirmEmail} className="button">Confirm</Button>
-                  <Dialog open={isEditDialogOpen} onClose={handleCloseEditDialog}>
-                  <DialogTitle>Edit Email</DialogTitle>
-                  <br/>
-                  <DialogContent className="dialogContent">
-                    <TextField
-                      label="Subject"
-                      value={editedEmail.subject}
-                      onChange={(e) => setEditedEmail({ ...editedEmail, subject: e.target.value })}
-                      fullWidth
-                      className="textField"
-                    />
-                    <TextField
-                      label="Body"
-                      multiline
-                      rows={7}
-                      value={editedEmail.body}
-                      onChange={(e) => setEditedEmail({ ...editedEmail, body: e.target.value })}
-                      fullWidth
-                      className="textField"
-                    />
-                  </DialogContent>
-                  <DialogActions className="dialogActions">
-                    <Button onClick={handleCloseEditDialog} className="button">Cancel</Button>
-                    <Button onClick={handleSaveChanges} className="button dialogButton">Save Changes</Button>
-                  </DialogActions>
-                </Dialog>
-                </div>
-              </div>
+            {activeStep === 2 && (
+                  <div>
+                    <h4>Subject</h4>
+            {columns.map((col) => (
+            <Button
+              key={col}
+              onClick={() => addPlaceholder(col, 'subject')}
+              className="button"
+            >
+              {col}
+            </Button>
+          ))}
+          <TextField
+            name="subject"
+            value={generatedEmail.subject}
+            onChange={(e) =>
+              setGeneratedEmail((prev) => ({ ...prev, subject: e.target.value }))
+            }
+            onClick={handleCursorChange}
+            onKeyUp={handleCursorChange}
+            multiline
+            rows={2}
+            fullWidth
+            className="textField"
+          />
+          <h4>Body</h4>
+          {columns.map((col) => (
+            <Button
+              key={col}
+              onClick={() => addPlaceholder(col, 'body')}
+              className="button"
+            >
+              {col}
+            </Button>
+          ))}
+          <TextField
+            name="body"
+            value={generatedEmail.body}
+            onChange={(e) =>
+              setGeneratedEmail((prev) => ({ ...prev, body: e.target.value }))
+            }
+            onClick={handleCursorChange}
+            onKeyUp={handleCursorChange}
+            multiline
+            rows={7}
+            fullWidth
+            className="textField"
+          />
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+            <Button onClick={handlePrevStep} className="button">
+              Previous
+            </Button>
+            <Button onClick={generateEmailPreview} className="button">
+              Schedule the email
+            </Button>
+          </div>
+                  </div>
             )}
 
-            {activeStep === 3 && (
+      {activeStep === 3 && (
+        <div>
+          <h3>Step 4: Schedule the emails</h3>
+
+          {/* Radio buttons to choose send option */}
+          <FormControl component="fieldset">
+            <FormLabel component="legend">Select Send Option</FormLabel>
+            <RadioGroup value={sendOption} onChange={handleSendOptionChange}>
+              <FormControlLabel value="now" control={<Radio />} label="Send Now" />
+              <FormControlLabel value="custom" control={<Radio />} label="Set Custom Time" />
+            </RadioGroup>
+          </FormControl>
+
+          {/* Custom time input */}
+          {sendOption === 'custom' && (
+            <>
+              <TextField
+                label="Schedule Time (YYYY-MM-DDTHH:MM:SS)"
+                fullWidth
+                value={sendTime}
+                onChange={(e) => setSendTime(e.target.value)}
+                style={{ marginBottom: '20px' }}
+              />
+              </>
+          )}
+                                    <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                          <Button onClick={handleNestStep} type="submit" className="button">
+                            Set the time
+                          </Button>
+                        </div>
+        </div>
+      )}
+
+            {activeStep === 4 && (
               <div>
-                <h3>Step 4: Send Email</h3>
-                Are you sure you want to send this email to all the email address in the csv ? 
-                <br/>
-                If yes click "send email"
-                <br/><br/><br/>
+                <h3>Step 5: Send Email</h3>
+                <p><strong>Subject:</strong> {generatedEmail.subject}</p>
+                <p><strong>Body:</strong></p>
+                <div style={{ whiteSpace: 'pre-line' }}>{generatedEmail.body}</div>
+                <p>Are you sure you want to send this email to all addresses in the CSV?</p>
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
                   <Button onClick={handlePrevStep} className="button">Edit email</Button>
                   <Button onClick={handleSendEmail} className="button">Send Email</Button>
                 </div>
               </div>
             )}
-
-            {activeStep === 4 && (
-              <div>
-                <EmailStatusDashboard />
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-                  <Button onClick={handleComplete} className="button">Complete!</Button>
-                </div>
-              </div>
-            )}
-
           </div>
         </div>
       </Box>

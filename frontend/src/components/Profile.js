@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Typography, Paper, CircularProgress, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow } from '@mui/material';
 import axios from 'axios';  // Make sure axios is installed
+import EmailStatusDashboard from './EmailStatusDashboard';
 
 const Profile = () => {
   const [userDetails, setUserDetails] = useState(null);
@@ -57,8 +58,8 @@ const Profile = () => {
   return (
     <Container>
       <Paper sx={{ padding: 3 }}>
-        <Typography variant="h4" gutterBottom>
-          User Profile
+        <Typography variant="h5" gutterBottom>
+          PROFILE
         </Typography>
         {userDetails ? (
           <>
@@ -68,7 +69,7 @@ const Profile = () => {
             <Typography variant="h6">
               Email: {userDetails.user.email}
             </Typography>
-
+            <EmailStatusDashboard/>
             {/* Display Email History */}
             <Typography variant="h6" gutterBottom>
               Email History:
